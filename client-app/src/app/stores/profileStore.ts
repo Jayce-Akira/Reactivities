@@ -39,6 +39,26 @@ export default class ProfileStore {
         return false;
     }
 
+    updateProfile = async (profile: Partial<Profile>) => {
+        this.loading = true;
+        try {
+            await agent.Profiles.updateProfile(profile);
+            runInAction(() => {
+                if (profile.displayName && profile.displayName !==store.userStore.user?.displayName) {
+                    store.userStore.setDisplayName(profile.displayName);
+                }
+                this.profile = { ...this.profile, ...profile as Profile };
+                this.loading = false;
+
+            // Recharger les activités après mise à jour du profil
+            store.activityStore.loadActivities();
+            })
+        } catch (error) {
+            console.log(error);
+            runInAction(() => this.loading = false);
+        }
+    }
+
     loadProfile = async (userName: string) => {
         this.loadingProfile = true;
         try {
